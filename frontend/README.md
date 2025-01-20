@@ -68,3 +68,24 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+project_root/
+├── cmd/
+│   └── main.go             # Application entry point
+├── internal/
+│   ├── config/
+│   │   └── config.go       # Configuration settings
+│   ├── handlers/
+│   │   ├── user.go         # User-related handlers
+│   │   └── email.go        # Email-related handlers
+│   ├── middleware/
+│   │   └── middleware.go   # CORS and rate limiting middleware
+│   ├── models/
+│   │   └── user.go         # User model definition
+│   └── utils/
+│       ├── logger.go       # Logging utilities
+│       └── validator.go    # Validation utilities
+└── pkg/
+└── database/
+└── db.go           # Database connection and operations
