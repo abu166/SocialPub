@@ -1,10 +1,7 @@
-import React from "react";
+import React from 'react';
+import ReactDOM from 'react-dom/client'; // Use the new root API
+import App from './App';
+import './index.css';
 
-import ReactDOM from "react-dom";
-
-import App from "./App.js";  
-
-ReactDOM.render(   
-<App /> ,
-document.getElementById("root")
-);
+const root = ReactDOM.createRoot(document.getElementById('root')); // Modern API
+root.render(<App />);
