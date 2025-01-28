@@ -18,45 +18,76 @@ func generateToken(length int) string {
 
 }
 
+//func GetCSRFToken(w http.ResponseWriter, r *http.Request) {
+//	// Set response header for JSON content
+//	w.Header().Set("Content-Type", "application/json")
+//
+//	// Hardcoded CSRF token (for now)
+//	csrfToken := "zcj7gYl_VoMa8pxJM78tLGRzpRJQCSpksh9F41hf-Fc"
+//
+//	// Create JSON response
+//	response := map[string]string{"csrf_token": csrfToken}
+//
+//	// Write JSON response
+//	if err := json.NewEncoder(w).Encode(response); err != nil {
+//		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
+//		return
+//	}
+//}
+
+// GetCSRFToken returns the CSRF token stored in the user's cookie
 func GetCSRFToken(w http.ResponseWriter, r *http.Request) {
-	// Set response header for JSON content
-	w.Header().Set("Content-Type", "application/json")
-
-	// Hardcoded CSRF token (for now)
-	csrfToken := "zcj7gYl_VoMa8pxJM78tLGRzpRJQCSpksh9F41hf-Fc"
-
-	// Create JSON response
-	response := map[string]string{"csrf_token": csrfToken}
-
-	// Write JSON response
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		http.Error(w, "Failed to encode JSON", http.StatusInternalServerError)
+	sessionCookie, err := r.Cookie("session_token")
+	if err != nil || sessionCookie.Value == "" {
+		http.Error(w, "Unauthorized: missing session token", http.StatusUnauthorized)
 		return
+	}
+
+	// Validate session token and get associated user
+	var csrfToken string
+	for _, u := range users {
+		if u.SessionToken == sessionCookie.Value {
+			csrfToken = u.CSRFToken
+			break
+		}
+	}
+
+	if csrfToken == "" {
+		http.Error(w, "Unauthorized: invalid session token", http.StatusUnauthorized)
+		return
+	}
+
+	// Respond with CSRF token
+	w.Header().Set("Content-Type", "application/json")
+	response := map[string]string{"csrf_token": csrfToken}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 	}
 }
 
-//func GetCSRFToken(w http.ResponseWriter, r *http.Request) {
-//	// Ensure the request is a GET
-//	if r.Method != http.MethodGet {
-//		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
-//		return
-//	}
-//
-//	// Retrieve the CSRF token from the cookie
-//	csrfCookie, err := r.Cookie("X-CSRF-Token")
-//	if err != nil || csrfCookie.Value == "" {
-//		log.Printf("CSRF token retrieval failed: %v", err)
-//		http.Error(w, "CSRF token not found", http.StatusUnauthorized)
-//		return
-//	}
-//
-//	// Send the CSRF token as a response
-//	response := map[string]string{
-//		"csrf_token": csrfCookie.Value,
-//	}
-//	w.Header().Set("Content-Type", "application/json")
-//	w.WriteHeader(http.StatusOK)
-//	if err := json.NewEncoder(w).Encode(response); err != nil {
-//		log.Printf("Failed to encode CSRF token response: %v", err)
-//	}
-//}
+func HandleCsrfToken(w http.ResponseWriter, r *http.Request) {
+	sessionCookie, err := r.Cookie("session_token")
+	if err != nil {
+		http.Error(w, "Unauthorized: missing session token", http.StatusUnauthorized)
+		return
+	}
+
+	// Validate session token
+	var user *NewLogin
+	for _, u := range users {
+		if u.SessionToken == sessionCookie.Value {
+			user = &u
+			break
+		}
+	}
+
+	if user == nil {
+		http.Error(w, "Unauthorized: invalid session token", http.StatusUnauthorized)
+		return
+	}
+
+	// Return CSRF token
+	w.Header().Set("Content-Type", "application/json")
+	response := map[string]string{"csrf_token": user.CSRFToken}
+	json.NewEncoder(w).Encode(response)
+}

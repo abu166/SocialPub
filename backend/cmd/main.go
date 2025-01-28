@@ -12,7 +12,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Register routes with middleware applied
-	mux.Handle("/csrf-token", corsMiddleware(http.HandlerFunc(internal.GetCSRFToken)))
+	mux.Handle("/csrf-token", corsMiddleware(http.HandlerFunc(internal.HandleCsrfToken)))
 	mux.Handle("/register", corsMiddleware(http.HandlerFunc(internal.Register)))
 	mux.Handle("/login", corsMiddleware(http.HandlerFunc(internal.Login)))
 	mux.Handle("/logout", corsMiddleware(http.HandlerFunc(internal.Logout)))

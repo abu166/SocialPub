@@ -4,6 +4,7 @@ import Home from './components/Home';
 import Login from './components/Login';
 import Logout from './components/Logout';
 import Registration from './components/Registration';
+import EmailForm from "./components/EmailForm";
 
 const App = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false); // Login state
@@ -11,22 +12,20 @@ const App = () => {
 
     // Fetch the CSRF token on component mount
     useEffect(() => {
+
+        const BASE_URL = "http://localhost:8080";
+
         const fetchCsrfToken = async () => {
             try {
-                const response = await fetch("http://localhost:8080/csrf-token", {
-                    method: "GET",
-                    credentials: "include", // Include cookies
+                const res = await fetch(`${BASE_URL}/csrf-token`, {
+                    method: 'GET',
+                    credentials: 'include',
                 });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log("CSRF Token fetched:", data.csrf_token);
-                    setCsrfToken(data.csrf_token);
-                } else {
-                    console.error("Failed to fetch CSRF token. Status:", response.status);
-                }
+                if (!res.ok) throw new Error('Failed to fetch CSRF token');
+                const data = await res.json();
+                setCsrfToken(data.csrf_token);
             } catch (error) {
-                console.error("Error fetching CSRF token:", error);
+                console.error('Failed to fetch CSRF token:', error);
             }
         };
 
@@ -70,6 +69,8 @@ const App = () => {
 
                 {/* Registration Route */}
                 <Route path="/register" element={<Registration />} />
+
+                <Route path="/send-email" element={<EmailForm />} />
             </Routes>
         </Router>
     );

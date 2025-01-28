@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+// Store user tokens in memory for demonstration purposes (not recommended for production)
+var userTokens = map[string]string{}
+
+// Login handles user authentication and issues session & CSRF tokens
 func Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -27,8 +31,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Reset the body and decode JSON
 	r.Body = io.NopCloser(bytes.NewBuffer(body))
-	err = json.NewDecoder(r.Body).Decode(&loginRequest)
-	if err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&loginRequest); err != nil {
 		log.Printf("JSON decode error: %v", err)
 		http.Error(w, "Invalid request body format", http.StatusBadRequest)
 		return
@@ -37,37 +40,48 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	username := loginRequest.Username
 	password := loginRequest.Password
 
+	// Validate user credentials
 	user, ok := users[username]
 	if !ok || !checkPasswordHash(password, user.HashedPassword) {
 		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
 		return
 	}
 
+	// Generate session and CSRF tokens
 	sessionToken := generateToken(32)
 	csrfToken := generateToken(32)
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session_token",
-		Value:    sessionToken,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HttpOnly: true,
-		Secure:   true,
-	})
+	// Store CSRF token for the user
+	userTokens[username] = csrfToken
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "csrf_token",
-		Value:    csrfToken,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HttpOnly: false,
-		Secure:   true,
-	})
-
+	// Update user record with tokens
 	user.SessionToken = sessionToken
 	user.CSRFToken = csrfToken
 	users[username] = user
 
-	response := map[string]string{"message": "Login successful!"}
+	// Set cookies
+	setCookie(w, "session_token", sessionToken, true, true)
+	setCookie(w, "csrf_token", csrfToken, true, false)
+
+	// Respond with CSRF token
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	response := map[string]string{"csrf_token": csrfToken}
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Failed to encode response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
+// Helper function to set cookies
+func setCookie(w http.ResponseWriter, name, value string, httpOnly, secure bool) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     name,
+		Value:    value,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: httpOnly,
+		Secure:   secure,
+		SameSite: http.SameSiteStrictMode,
+	})
 }
