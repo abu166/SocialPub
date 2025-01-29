@@ -4,7 +4,6 @@ import Home from './components/Home';
 import Login from './components/Login';
 import Logout from './components/Logout';
 import Registration from './components/Registration';
-import EmailForm from "./components/EmailForm";
 
 const App = () => {
     const [isLoggedIn, setIsLoggedIn] = useState(false); // Login state
@@ -69,8 +68,6 @@ const App = () => {
 
                 {/* Registration Route */}
                 <Route path="/register" element={<Registration />} />
-
-                <Route path="/send-email" element={<EmailForm />} />
             </Routes>
         </Router>
     );
