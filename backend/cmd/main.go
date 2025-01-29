@@ -3,12 +3,19 @@ package main
 import (
 	"log"
 	"main/internal"
+	"main/pkg/database"
 	"net/http"
 )
 
 var allowedOrigins = []string{"http://localhost:3000", "http://172.20.10.2:3000"}
 
 func main() {
+
+	// Initialize database
+	if err := database.InitDB(); err != nil {
+		log.Fatal("Failed to initialize database:", err)
+	}
+
 	mux := http.NewServeMux()
 
 	// Register routes with middleware applied
@@ -17,6 +24,7 @@ func main() {
 	mux.Handle("/login", corsMiddleware(http.HandlerFunc(internal.Login)))
 	mux.Handle("/logout", corsMiddleware(http.HandlerFunc(internal.Logout)))
 	mux.Handle("/protected", corsMiddleware(http.HandlerFunc(internal.Protected)))
+	mux.Handle("/verify-email", corsMiddleware(http.HandlerFunc(internal.VerifyEmail)))
 
 	// Serve static files under /static/
 	fs := http.FileServer(http.Dir("./static"))
