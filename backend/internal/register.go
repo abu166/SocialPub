@@ -8,8 +8,6 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
-
-	"main/internal/email"
 )
 
 type RegisterRequest struct {
@@ -55,7 +53,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Save user details
-	users[req.Username] = NewLogin{
+	users[req.Username] = &NewLogin{
 		HashedPassword: hashedPassword,
 		SessionToken:   "",
 		CSRFToken:      "",
@@ -66,7 +64,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	confirmationCode := rand.Intn(900000) + 100000 // 6-digit code
 
 	// Send email
-	if err := email.SendEmail(req.Email, fmt.Sprintf("%d", confirmationCode)); err != nil {
+	if err := EmailSender(req.Email, fmt.Sprintf("%d", confirmationCode)); err != nil {
 		log.Println("Error sending email:", err)
 		http.Error(w, "Failed to send confirmation email", http.StatusInternalServerError)
 		return

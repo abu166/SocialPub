@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-var allowedOrigins = []string{"http://localhost:3000", "http://172.20.10.2:3000"}
+var allowedOrigins = []string{"http://localhost:3000", "http://172.20.10.2:3000", "http://127.0.0.1:4040", "https://083e-213-232-244-9.ngrok-free.app"}
 
 func main() {
 
@@ -25,6 +25,8 @@ func main() {
 	mux.Handle("/logout", corsMiddleware(http.HandlerFunc(internal.Logout)))
 	mux.Handle("/protected", corsMiddleware(http.HandlerFunc(internal.Protected)))
 	mux.Handle("/verify-email", corsMiddleware(http.HandlerFunc(internal.VerifyEmail)))
+	mux.Handle("/admin", corsMiddleware(http.HandlerFunc(internal.AuthorsRoute)))
+	mux.Handle("/check-auth", corsMiddleware(http.HandlerFunc(internal.CheckAuth)))
 
 	// Serve static files under /static/
 	fs := http.FileServer(http.Dir("./static"))

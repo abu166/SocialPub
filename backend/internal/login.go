@@ -65,7 +65,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	// Respond with CSRF token
 	w.Header().Set("Content-Type", "application/json")
-	response := map[string]string{"csrf_token": csrfToken}
+	response := map[string]interface{}{
+		"csrf_token":   csrfToken,
+		"is_logged_in": true,
+		"is_admin":     user.IsAdmin,
+	}
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Failed to encode response: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

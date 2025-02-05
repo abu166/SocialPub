@@ -26,10 +26,9 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	// Find the user associated with the session token
 	var username string
 	var currentUser *NewLogin
-	for u, user := range users {
+	for _, user := range users {
 		if user.SessionToken == sessionToken {
-			username = u
-			currentUser = &user
+			currentUser = user
 			break
 		}
 	}
@@ -42,7 +41,7 @@ func Logout(w http.ResponseWriter, r *http.Request) {
 	// Clear session and CSRF tokens from the user record
 	currentUser.SessionToken = ""
 	currentUser.CSRFToken = ""
-	users[username] = *currentUser // Update the user in the map
+	users[username] = currentUser // Update the user in the map
 
 	// Expire the session and CSRF cookies
 	http.SetCookie(w, &http.Cookie{

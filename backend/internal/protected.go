@@ -1,13 +1,14 @@
 package internal
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
 // Protected handles requests to a protected resource, validating CSRF and session tokens.
 func Protected(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodGet {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
@@ -25,7 +26,7 @@ func Protected(w http.ResponseWriter, r *http.Request) {
 	var currentUser *NewLogin
 	for _, user := range users {
 		if user.SessionToken == sessionToken {
-			currentUser = &user
+			currentUser = user // `user` is now already a pointer, no need for &user
 			break
 		}
 	}
@@ -37,23 +38,17 @@ func Protected(w http.ResponseWriter, r *http.Request) {
 
 	// Extract and validate the CSRF token from headers
 	csrfToken := r.Header.Get("X-CSRF-Token")
-	if csrfToken == "" {
-		http.Error(w, "CSRF token missing", http.StatusForbidden)
-		return
-	}
-
-	if csrfToken != currentUser.CSRFToken {
+	if csrfToken == "" || csrfToken != currentUser.CSRFToken {
 		http.Error(w, "Invalid CSRF token", http.StatusForbidden)
 		return
 	}
 
-	// Retrieve username and send a success response
-	username := r.FormValue("username")
-	if username == "" {
-		username = "Anonymous"
+	// Send user information as a response
+	response := map[string]interface{}{
+		"message":  fmt.Sprintf("CSRF validation successful! Welcome, %s", currentUser.Username),
+		"is_admin": currentUser.IsAdmin,
 	}
 
-	w.Header().Set("Content-Type", "text/plain")
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "CSRF validation successful! Welcome, %s", username)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

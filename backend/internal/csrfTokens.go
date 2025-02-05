@@ -76,7 +76,7 @@ func HandleCsrfToken(w http.ResponseWriter, r *http.Request) {
 	var user *NewLogin
 	for _, u := range users {
 		if u.SessionToken == sessionCookie.Value {
-			user = &u
+			user = u
 			break
 		}
 	}
