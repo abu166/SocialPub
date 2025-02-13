@@ -27,7 +27,6 @@ const Home = ({ isLoggedIn, setIsLoggedIn }) => {
                 console.log("Logout successful!");
                 // Reset logged-in state
                 setIsLoggedIn(false);
-
                 // Redirect to home page
                 navigate("/");
             } else {
