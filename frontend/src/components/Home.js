@@ -5,29 +5,22 @@ import '../styles/Home.css';
 const Home = ({ isLoggedIn, setIsLoggedIn }) => {
     const navigate = useNavigate();
 
+    // Logout handler
     const handleLogout = async () => {
         try {
-
             const csrfToken = localStorage.getItem('csrf_token');
-
             console.log("Attempting to log out with CSRF Token:", csrfToken);
-
             const response = await fetch("http://localhost:8080/logout", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    "X-CSRF-Token": csrfToken, // Pass CSRF token from props
+                    "X-CSRF-Token": csrfToken,
                 },
-                credentials: "include", // Ensure cookies are included
+                credentials: "include",
             });
-
-            console.log("CSRF Token:", csrfToken);
-
             if (response.ok) {
                 console.log("Logout successful!");
-                // Reset logged-in state
                 setIsLoggedIn(false);
-                // Redirect to home page
                 navigate("/");
             } else {
                 const data = await response.json();
@@ -40,7 +33,6 @@ const Home = ({ isLoggedIn, setIsLoggedIn }) => {
         }
     };
 
-
     return (
         <div className="home-container">
             {/* Left Sidebar */}
@@ -50,6 +42,7 @@ const Home = ({ isLoggedIn, setIsLoggedIn }) => {
                     <li><Link to="/search">Search</Link></li>
                     <li><Link to="/create-post">+</Link></li>
                     <li><Link to="/profile">Profile</Link></li>
+                    <li><Link to="/cart">Cart</Link></li> {/* Add Cart route */}
                 </ul>
             </nav>
 
@@ -64,6 +57,8 @@ const Home = ({ isLoggedIn, setIsLoggedIn }) => {
                         <button className="logout-button" onClick={handleLogout}>Log out</button>
                     )}
                 </header>
+
+                {/* Posts Section */}
                 <div className="posts">
                     <div className="post">
                         <div className="post-header">

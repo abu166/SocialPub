@@ -123,3 +123,38 @@ export const handleLogout = async () => {
         console.error("Logout failed:", error.message);
     }
 };
+
+export const addToCart = async (user_id, product_id, quantity) => {
+    const response = await fetch(`${BASE_URL}/cart/add`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': localStorage.getItem('csrf_token'),
+        },
+        body: JSON.stringify({ user_id, product_id, quantity }),
+    });
+    return response.json();
+};
+
+export const initiatePayment = async (user_id, cart_id) => {
+    const response = await fetch(`${BASE_URL}/initiate-payment`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': localStorage.getItem('csrf_token'),
+        },
+        body: JSON.stringify({ user_id, cart_id }),
+    });
+    return response.json();
+};
+
+export const fetchReceipt = async (transactionID) => {
+    const response = await fetch(`http://localhost:8081/receipt?transactionID=${transactionID}`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': localStorage.getItem('csrf_token'),
+        },
+    });
+    return response.json();
+};

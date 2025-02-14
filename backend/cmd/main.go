@@ -7,10 +7,14 @@ import (
 	"net/http"
 )
 
-var allowedOrigins = []string{"http://localhost:3000", "http://172.20.10.2:3000", "http://127.0.0.1:4040", "https://083e-213-232-244-9.ngrok-free.app"}
+var allowedOrigins = []string{
+	"http://localhost:3000",
+	"http://172.20.10.2:3000",
+	"http://127.0.0.1:4040",
+	"https://083e-213-232-244-9.ngrok-free.app",
+}
 
 func main() {
-
 	// Initialize database
 	if err := database.InitDB(); err != nil {
 		log.Fatal("Failed to initialize database:", err)
@@ -27,6 +31,9 @@ func main() {
 	mux.Handle("/verify-email", corsMiddleware(http.HandlerFunc(internal.VerifyEmail)))
 	mux.Handle("/admin", corsMiddleware(http.HandlerFunc(internal.AuthorsRoute)))
 	mux.Handle("/check-auth", corsMiddleware(http.HandlerFunc(internal.CheckAuth)))
+	mux.Handle("/cart/add", corsMiddleware(http.HandlerFunc(internal.AddToCart)))
+	mux.Handle("/initiate-payment", corsMiddleware(http.HandlerFunc(internal.InitiatePayment)))
+	mux.Handle("/cart", corsMiddleware(http.HandlerFunc(internal.GetCart))) // Add this line for /cart
 
 	// Serve static files under /static/
 	fs := http.FileServer(http.Dir("./static"))
@@ -43,27 +50,19 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
 		log.Printf("Request Origin: %s", origin) // Debugging origin
-
-		// Allow CORS for matching origins
 		for _, o := range allowedOrigins {
 			if origin == o {
 				w.Header().Set("Access-Control-Allow-Origin", origin)
 				break
 			}
 		}
-
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		// Include X-CSRF-Token in the allowed headers
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, X-CSRF-Token")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
-
-		// Handle preflight OPTIONS request
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
 		}
-
-		// Call the next handler
 		next.ServeHTTP(w, r)
 	})
 }
